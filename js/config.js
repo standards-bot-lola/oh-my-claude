@@ -59,6 +59,28 @@ TD.ENV_TIERS = {
 // Default tier
 TD.ENV_DEFAULT_TIER = 'moderate';
 
+/**
+ * Dietary profiles — daily CO₂e by diet type.
+ *
+ * Each profile's kgCO2PerDay is keyed by tier name so it plugs
+ * directly into the existing conservative/moderate/generous axis.
+ *
+ * Savings = (omnivore − chosen) × days.
+ *
+ * Sources:
+ *   Scarborough et al. 2023 (Nature Food) — EPIC-Oxford, 55,504 diets
+ *   Poore & Nemecek 2018 (Science) — meta-analysis, 38,700 farms
+ *   Clark et al. / PMC dietary studies — US and European cohorts
+ */
+TD.DIET_PROFILES = {
+  omnivore:    { label: 'Omnivore',    desc: 'Average diet (baseline)', kgCO2PerDay: { conservative: 3.0, moderate: 3.6, generous: 7.2 }, isBaseline: true },
+  pescatarian: { label: 'Pescatarian', desc: 'Fish, no meat',           kgCO2PerDay: { conservative: 2.2, moderate: 2.7, generous: 3.9 } },
+  vegetarian:  { label: 'Vegetarian',  desc: 'No meat or fish',         kgCO2PerDay: { conservative: 2.0, moderate: 2.45, generous: 3.5 } },
+  vegan:       { label: 'Vegan',       desc: 'Fully plant-based',       kgCO2PerDay: { conservative: 1.0, moderate: 1.38, generous: 2.5 } },
+};
+
+TD.DIET_DEFAULT_PROFILE = 'vegan';
+
 // Convenience: get current tier's constants
 TD.getEnv = function(tier) {
   return TD.ENV_TIERS[tier || TD.ENV_DEFAULT_TIER];

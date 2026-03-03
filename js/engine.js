@@ -180,6 +180,60 @@ TD.computeBurger = function(totals, daySpan, dietDaySpan) {
 };
 
 /**
+ * Compute full dietary CO₂ comparison for a single tier + profile.
+ *
+ * Unlike the burger math (which counts discrete burgers),
+ * this uses the total daily CO₂ footprint of each diet
+ * and computes cumulative savings vs. an omnivore baseline.
+ */
+TD.computeDietProfileTier = function(totals, daySpan, dietDaySpan, tier, profileKey) {
+  var E = TD.getEnv(tier);
+  var profile = TD.DIET_PROFILES[profileKey];
+  var baseline = TD.DIET_PROFILES.omnivore;
+
+  // AI CO₂ (same formula as computeBurgerTier)
+  var outputMTok     = totals.output / 1e6;
+  var inputMTok      = totals.input / 1e6;
+  var cacheWriteMTok = totals.cacheWrite / 1e6;
+  var cacheReadMTok  = totals.cacheRead / 1e6;
+
+  var energyKWh = outputMTok * E.KWH_PER_MTOK_OUTPUT
+                + (inputMTok + cacheWriteMTok) * E.KWH_PER_MTOK_INPUT
+                + cacheReadMTok * E.KWH_PER_MTOK_CACHE_READ;
+  var aiCO2 = energyKWh * E.KG_CO2_PER_KWH;
+
+  // Diet CO₂ savings
+  var baselineDailyCO2 = baseline.kgCO2PerDay[tier];
+  var profileDailyCO2  = profile.kgCO2PerDay[tier];
+  var dailySavings     = baselineDailyCO2 - profileDailyCO2;
+  var totalDietSavings = dailySavings * dietDaySpan;
+
+  var ratio   = totalDietSavings > 0 ? totalDietSavings / aiCO2 : 0;
+  var pctUsed = totalDietSavings > 0 ? (aiCO2 / totalDietSavings) * 100 : 0;
+  var netCO2  = totalDietSavings - aiCO2;
+
+  return {
+    tier: tier, label: E.label,
+    profileKey: profileKey, profileLabel: profile.label,
+    energyKWh: energyKWh, aiCO2: aiCO2,
+    dailySavings: dailySavings, totalDietSavings: totalDietSavings,
+    dietDaySpan: dietDaySpan,
+    netCO2: netCO2, ratio: ratio, pctUsed: pctUsed,
+  };
+};
+
+/**
+ * Compute diet profile metrics across all 3 tiers.
+ */
+TD.computeDietProfile = function(totals, daySpan, dietDaySpan, profileKey) {
+  return {
+    conservative: TD.computeDietProfileTier(totals, daySpan, dietDaySpan, 'conservative', profileKey),
+    moderate:     TD.computeDietProfileTier(totals, daySpan, dietDaySpan, 'moderate', profileKey),
+    generous:     TD.computeDietProfileTier(totals, daySpan, dietDaySpan, 'generous', profileKey),
+  };
+};
+
+/**
  * Compute the diet day span — firstSessionDate → today.
  * This is always >= the AI data daySpan since your diet doesn't
  * stop when the stats file stops updating.

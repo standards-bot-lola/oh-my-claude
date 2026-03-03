@@ -315,40 +315,118 @@
     document.getElementById('machineTable').innerHTML = html;
   }
 
-  // ── Burger section ──
+  // ── Burger / Diet section ──
   var burgerTiers = null;
+  var dietProfileTiers = null;
   var currentTier = 'moderate';
+  var currentProfile = localStorage.getItem('td-diet-profile') || TD.DIET_DEFAULT_PROFILE;
+  var _lastTotals = null;
+  var _lastDaySpan = 0;
+  var _lastDietDaySpan = 0;
+
+  // Validate stored profile
+  if (!TD.DIET_PROFILES[currentProfile]) currentProfile = TD.DIET_DEFAULT_PROFILE;
 
   function renderBurger(totals, daySpan, dietDaySpan) {
+    _lastTotals = totals;
+    _lastDaySpan = daySpan;
+    _lastDietDaySpan = dietDaySpan;
     burgerTiers = TD.computeBurger(totals, daySpan, dietDaySpan);
+    dietProfileTiers = TD.computeDietProfile(totals, daySpan, dietDaySpan, currentProfile);
     currentTier = 'moderate';
     renderBurgerTier();
   }
 
   function renderBurgerTier() {
     var b = burgerTiers[currentTier];
+    var dp = dietProfileTiers[currentTier];
     var lo = burgerTiers.conservative;
     var hi = burgerTiers.generous;
-    var positive = b.netCO2 > 0;
+    var dpLo = dietProfileTiers.conservative;
+    var dpHi = dietProfileTiers.generous;
+    var isBaseline = !!TD.DIET_PROFILES[currentProfile].isBaseline;
+    var positive = isBaseline ? false : dp.netCO2 > 0;
 
     var zone = document.getElementById('burgerZone');
-    zone.className = 'burger-zone' + (positive ? '' : ' net-negative');
+    zone.className = 'burger-zone' + (positive ? '' : (isBaseline ? '' : ' net-negative'));
 
-    var barPct = Math.min(b.pctUsed, 100);
-
-    // Range strings for display
-    var aiRange = lo.aiCO2.toFixed(1) + '–' + hi.aiCO2.toFixed(1);
+    // Burger range (still the fun hook)
     var burgerRange = lo.aiBurgers.toFixed(1) + '–' + hi.aiBurgers.toFixed(1);
+
+    // Tagline
+    var tagline;
+    if (isBaseline) {
+      tagline = 'Baseline Diet — No Offset';
+    } else if (positive) {
+      tagline = TD.DIET_PROFILES[currentProfile].label + '-Powered Net Positive';
+    } else {
+      tagline = 'Offset Exceeded';
+    }
+
+    // Narrative
+    var narrative;
+    var savingsVerbs = { pescatarian: 'choosing fish over meat', vegetarian: 'going vegetarian', vegan: 'going vegan' };
+
+    if (isBaseline) {
+      narrative = 'As an omnivore, your diet is the baseline — no dietary CO&#8322; savings to offset AI usage. ' +
+        'Your Claude inference generated ~<strong>' + dp.aiCO2.toFixed(1) + ' kg CO&#8322;</strong>. ' +
+        'Select a different diet to see how dietary choices offset your AI footprint.';
+    } else if (positive) {
+      narrative = 'By ' + savingsVerbs[currentProfile] + ' for ' + dp.dietDaySpan + ' days, you\'ve saved ~<strong>' +
+        dp.totalDietSavings.toFixed(1) + ' kg CO&#8322;</strong> compared to an average omnivore. ' +
+        'Your Claude inference used ~<strong>' + dp.aiCO2.toFixed(1) + ' kg CO&#8322;</strong>. ' +
+        'Your diet covers your AI footprint <strong>' + dp.ratio.toFixed(1) + 'x over</strong>.';
+    } else {
+      narrative = 'By ' + savingsVerbs[currentProfile] + ' for ' + dp.dietDaySpan + ' days, you\'ve saved ~<strong>' +
+        dp.totalDietSavings.toFixed(1) + ' kg CO&#8322;</strong> compared to an average omnivore. ' +
+        'However, your Claude inference used ~<strong>' + dp.aiCO2.toFixed(1) + ' kg CO&#8322;</strong>, ' +
+        'exceeding your dietary savings by <strong>' + Math.abs(dp.netCO2).toFixed(1) + ' kg</strong>.';
+    }
+
+    // Profile selector buttons
+    var profileBtns = '';
+    for (var key in TD.DIET_PROFILES) {
+      var p = TD.DIET_PROFILES[key];
+      profileBtns += '<button class="profile-btn' + (currentProfile === key ? ' active' : '') +
+        (p.isBaseline ? ' baseline' : '') +
+        '" onclick="TD.app.setDietProfile(\'' + key + '\')" title="' + p.desc + '">' + p.label + '</button>';
+    }
+
+    // Budget bar (only meaningful for non-baseline)
+    var barPct = isBaseline ? 0 : Math.min(dp.pctUsed, 100);
+    var budgetBar = '';
+    if (!isBaseline) {
+      budgetBar =
+        '<div class="budget-bar">' +
+          '<div class="budget-labels">' +
+            '<span>AI used <strong>' + dp.pctUsed.toFixed(0) + '%</strong> of diet savings</span>' +
+            '<span class="budget-label-right">' + dp.totalDietSavings.toFixed(1) + ' kg saved</span>' +
+          '</div>' +
+          '<div class="budget-track">' +
+            '<div class="budget-fill" style="width:0%" data-target="' + barPct + '"></div>' +
+          '</div>' +
+          '<div class="budget-legend">' +
+            '<span class="budget-legend-item"><span class="legend-dot" style="background:var(--orange)"></span>' + dp.aiCO2.toFixed(1) + ' kg AI</span>' +
+            '<span class="budget-legend-item"><span class="legend-dot" style="background:var(--green)"></span>' + Math.max(0, dp.totalDietSavings - dp.aiCO2).toFixed(1) + ' kg net saved</span>' +
+          '</div>' +
+        '</div>';
+    }
+
+    // Diet savings row for range table (only for non-baseline)
+    var dpMod = dietProfileTiers.moderate;
+    var dietSavingsRow = isBaseline ? '' :
+      '<tr><td class="label-cell">Diet CO&#8322; Saved</td><td class="right">' + dpLo.totalDietSavings.toFixed(1) + ' kg</td><td class="right">' + dpMod.totalDietSavings.toFixed(1) + ' kg</td><td class="right">' + dpHi.totalDietSavings.toFixed(1) + ' kg</td></tr>' +
+      '<tr><td class="label-cell">Diet : AI</td><td class="right">' + (dpLo.ratio > 0 ? dpLo.ratio.toFixed(1) + 'x' : '—') + '</td><td class="right">' + (dpMod.ratio > 0 ? dpMod.ratio.toFixed(1) + 'x' : '—') + '</td><td class="right">' + (dpHi.ratio > 0 ? dpHi.ratio.toFixed(1) + 'x' : '—') + '</td></tr>';
 
     zone.innerHTML =
       '<div class="burger-header">' +
-        '<div class="burger-tagline">' + (positive ? 'Plant-Powered Net Positive' : 'Offset Exceeded') + '</div>' +
+        '<div class="burger-tagline">' + tagline + '</div>' +
         '<div class="burger-headline">Your AI runs on ' + burgerRange + ' burgers of CO&#8322;</div>' +
-        '<div class="burger-body">' + (positive
-          ? 'Using ' + b.tier + ' estimates, Claude inference generated ~<strong>' + b.aiCO2.toFixed(1) + ' kg CO&#8322;</strong> (range: ' + aiRange + '). Over ' + b.dietDaySpan + ' days plant-based, you skipped ~' + b.dietBurgers + ' burgers worth <strong>' + b.dietCO2.toFixed(1) + ' kg CO&#8322;</strong>. Your diet covers your AI footprint <strong>' + b.ratio.toFixed(1) + 'x over</strong>.'
-          : 'Using ' + b.tier + ' estimates, Claude inference generated ~<strong>' + b.aiCO2.toFixed(1) + ' kg CO&#8322;</strong> (range: ' + aiRange + '), exceeding the <strong>' + b.dietCO2.toFixed(1) + ' kg CO&#8322;</strong> saved by skipping ~' + b.dietBurgers + ' burgers over ' + b.dietDaySpan + ' days.'
-        ) + '</div>' +
+        '<div class="burger-body">' + narrative + '</div>' +
       '</div>' +
+
+      // Diet profile selector
+      '<div class="diet-profile-select">' + profileBtns + '</div>' +
 
       // Tier toggle
       '<div class="tier-toggle">' +
@@ -357,20 +435,7 @@
         '<button class="tier-btn' + (currentTier === 'generous' ? ' active' : '') + '" onclick="TD.app.setTier(\'generous\')">Generous</button>' +
       '</div>' +
 
-      // Budget bar
-      '<div class="budget-bar">' +
-        '<div class="budget-labels">' +
-          '<span>AI used <strong>' + b.pctUsed.toFixed(0) + '%</strong> of diet savings</span>' +
-          '<span class="budget-label-right">' + b.dietCO2.toFixed(1) + ' kg saved</span>' +
-        '</div>' +
-        '<div class="budget-track">' +
-          '<div class="budget-fill" style="width:0%" data-target="' + barPct + '"></div>' +
-        '</div>' +
-        '<div class="budget-legend">' +
-          '<span class="budget-legend-item"><span class="legend-dot" style="background:var(--orange)"></span>' + b.aiCO2.toFixed(1) + ' kg AI</span>' +
-          '<span class="budget-legend-item"><span class="legend-dot" style="background:var(--green)"></span>' + Math.max(0, b.dietCO2 - b.aiCO2).toFixed(1) + ' kg net saved</span>' +
-        '</div>' +
-      '</div>' +
+      budgetBar +
 
       // Range table
       '<div class="range-table-wrap">' +
@@ -378,24 +443,23 @@
           '<tr><th></th><th class="right">Conservative</th><th class="right">Moderate</th><th class="right">Generous</th></tr>' +
           '<tr><td class="label-cell">AI CO&#8322;</td><td class="right">' + lo.aiCO2.toFixed(1) + ' kg</td><td class="right">' + burgerTiers.moderate.aiCO2.toFixed(1) + ' kg</td><td class="right">' + hi.aiCO2.toFixed(1) + ' kg</td></tr>' +
           '<tr><td class="label-cell">AI Burgers</td><td class="right">' + lo.aiBurgers.toFixed(1) + '</td><td class="right">' + burgerTiers.moderate.aiBurgers.toFixed(1) + '</td><td class="right">' + hi.aiBurgers.toFixed(1) + '</td></tr>' +
-          '<tr><td class="label-cell">Diet Savings</td><td class="right">' + lo.dietCO2.toFixed(1) + ' kg</td><td class="right">' + burgerTiers.moderate.dietCO2.toFixed(1) + ' kg</td><td class="right">' + hi.dietCO2.toFixed(1) + ' kg</td></tr>' +
-          '<tr><td class="label-cell">Diet : AI</td><td class="right">' + lo.ratio.toFixed(1) + 'x</td><td class="right">' + burgerTiers.moderate.ratio.toFixed(1) + 'x</td><td class="right">' + hi.ratio.toFixed(1) + 'x</td></tr>' +
+          dietSavingsRow +
           '<tr><td class="label-cell">Est. kWh</td><td class="right">' + lo.energyKWh.toFixed(1) + '</td><td class="right">' + burgerTiers.moderate.energyKWh.toFixed(1) + '</td><td class="right">' + hi.energyKWh.toFixed(1) + '</td></tr>' +
         '</table>' +
       '</div>' +
 
-      // Stat row (selected tier)
+      // Stat row
       '<div class="burger-stat-row">' +
         '<div class="burger-stat">' +
           '<div class="num" style="color:var(--orange)" id="ctrAiBurgers">0</div>' +
           '<div class="lbl">AI Burgers</div>' +
         '</div>' +
         '<div class="burger-stat">' +
-          '<div class="num" style="color:var(--green)" id="ctrDietBurgers">0</div>' +
-          '<div class="lbl">Burgers Skipped</div>' +
+          '<div class="num" style="color:var(--green)" id="ctrDietSaved">0</div>' +
+          '<div class="lbl">' + (isBaseline ? 'No Savings' : 'kg CO&#8322; Saved') + '</div>' +
         '</div>' +
         '<div class="burger-stat">' +
-          '<div class="num" style="color:' + (positive ? 'var(--green)' : 'var(--red)') + '" id="ctrRatio">0</div>' +
+          '<div class="num" style="color:' + (positive ? 'var(--green)' : (isBaseline ? 'var(--text-3)' : 'var(--red)')) + '" id="ctrRatio">0</div>' +
           '<div class="lbl">Diet : AI Ratio</div>' +
         '</div>' +
         '<div class="burger-stat">' +
@@ -407,13 +471,12 @@
       '<details class="methodology">' +
         '<summary>Methodology &amp; Sources</summary>' +
         '<p><strong>3-tier estimates:</strong> Each figure is computed under Conservative, Moderate, and Generous assumptions. The range reflects genuine uncertainty in these measurements — not sloppiness.</p>' +
+        '<p><strong>Dietary profiles:</strong> Daily CO&#8322;e by diet type from Scarborough et al. 2023 (EPIC-Oxford, Nature Food) and Poore &amp; Nemecek 2018 (Science). Omnivore baseline: 3.0–7.2 kg/day. Vegan: 1.0–2.5 kg/day. Vegetarian: 2.0–3.5 kg/day. Pescatarian: 2.2–3.9 kg/day. Savings = (omnivore − your diet) × days.</p>' +
         '<p><strong>API Pricing:</strong> Anthropic official pricing (Mar 2026). Opus: $5/$25/$0.50/$6.25 per MTok. Sonnet: $3/$15/$0.30/$3.75. Haiku: $0.80/$4/$0.08/$1.</p>' +
         '<p><strong>Energy per token (moderate):</strong> ~1 kWh/MTok output, ~0.3 input, ~0.02 cache reads. Conservative: 0.4/0.1/0.005 (optimized H100 cluster). Generous: 2.0/0.6/0.05 (large context, low batch). Sources: TokenPowerBench (arxiv 2024), Muxup (2026), John Snow Labs.</p>' +
         '<p><strong>CO&#8322; per kWh:</strong> Conservative: 0.28 kg (renewable-heavy data center). Moderate: 0.42 kg (US grid avg, EPA eGRID 2024). Generous: 0.55 kg (higher-carbon grid regions).</p>' +
-        '<p><strong>Burger footprint:</strong> Conservative: 2.5 kg (feedlot, GWP100, no land-use change — NCBA). Moderate: 4.5 kg (full lifecycle US beef — Poore &amp; Nemecek 2018, Nature Food 2024). Generous: 6.5 kg (full LCA + LUC + GWP20 methane — Oxford LEAP, Carlsson-Kanyama upper end).</p>' +
-        '<p><strong>Burgers skipped per week:</strong> Conservative: 0.65 (NHANES dietary recall — PMC11194417). Moderate: 1.0 (USDA ERS per-capita beef, ground-beef-to-burger conversion). Generous: 3.0 (all-burger types, industry aggregate — NRA).</p>' +
-        '<p><strong>Key correction:</strong> The commonly cited "2.4 burgers/week" conflates all burger types and uses industry marketing data. The peer-reviewed moderate estimate for beef-specifically is ~1.0/week (USDA ERS loss-adjusted data).</p>' +
-        '<p><strong>Caveats:</strong> Token-to-energy estimates vary 10x+ by hardware, batch size, and PUE. The range shown here captures most of that uncertainty. Anthropic\'s actual data center efficiency is not public.</p>' +
+        '<p><strong>Burger equivalent:</strong> Conservative: 2.5 kg/burger (NCBA). Moderate: 4.5 kg (Poore &amp; Nemecek 2018). Generous: 6.5 kg (Oxford LEAP + LUC). Kept as a visceral comparison alongside full dietary profiles.</p>' +
+        '<p><strong>Caveats:</strong> Token-to-energy estimates vary 10x+ by hardware, batch size, and PUE. Dietary footprints assume typical Western grocery patterns — actual savings vary by meal choices. Anthropic\'s actual data center efficiency is not public.</p>' +
       '</details>';
 
     // Animate
@@ -421,9 +484,9 @@
       var fill = zone.querySelector('.budget-fill');
       if (fill) fill.style.width = fill.dataset.target + '%';
       TD.animateCounter(document.getElementById('ctrAiBurgers'), parseFloat(b.aiBurgers.toFixed(1)));
-      TD.animateCounter(document.getElementById('ctrDietBurgers'), b.dietBurgers);
-      TD.animateCounter(document.getElementById('ctrRatio'), parseFloat(b.ratio.toFixed(1)), '', 'x');
-      TD.animateCounter(document.getElementById('ctrKwh'), parseFloat(b.energyKWh.toFixed(1)));
+      TD.animateCounter(document.getElementById('ctrDietSaved'), isBaseline ? 0 : parseFloat(dp.totalDietSavings.toFixed(1)));
+      TD.animateCounter(document.getElementById('ctrRatio'), isBaseline ? 0 : parseFloat(dp.ratio.toFixed(1)), '', isBaseline ? '' : 'x');
+      TD.animateCounter(document.getElementById('ctrKwh'), parseFloat(dp.energyKWh.toFixed(1)));
     }, 200);
   }
 
@@ -454,6 +517,15 @@
     },
     setTier: function(tier) {
       currentTier = tier;
+      renderBurgerTier();
+    },
+    setDietProfile: function(profileKey) {
+      if (!TD.DIET_PROFILES[profileKey]) return;
+      currentProfile = profileKey;
+      localStorage.setItem('td-diet-profile', profileKey);
+      if (_lastTotals) {
+        dietProfileTiers = TD.computeDietProfile(_lastTotals, _lastDaySpan, _lastDietDaySpan, currentProfile);
+      }
       renderBurgerTier();
     },
   };
