@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Bun top (rounded) -->
+  <path d="M6 14h20c0-6.6-4.5-10-10-10S6 7.4 6 14z" fill="#8b7ad8"/>
+  <!-- Patty -->
+  <rect x="5" y="15.5" width="22" height="4" rx="2" fill="#e8973f"/>
+  <!-- Bun bottom -->
+  <rect x="6" y="21" width="20" height="4" rx="2" fill="#8b7ad8"/>
+  <!-- Bite taken out (top-right) -->
+  <circle cx="24" cy="8" r="5" fill="#08090a"/>
+</svg>
