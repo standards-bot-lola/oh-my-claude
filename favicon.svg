@@ -1,15 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Bun top (dome) -->
-  <path d="M5 15.5h22c0-7.2-4.5-11.5-11-11.5S5 8.3 5 15.5z" fill="#8b7ad8"/>
-  <!-- Sesame seeds on bun -->
-  <ellipse cx="10.5" cy="8.5" rx="1.4" ry="0.7" transform="rotate(-25 10.5 8.5)" fill="#b0a3e3" opacity="0.6"/>
-  <ellipse cx="16.5" cy="6.2" rx="1.4" ry="0.7" transform="rotate(15 16.5 6.2)" fill="#b0a3e3" opacity="0.6"/>
-  <!-- Lettuce (wavy green peeking out) -->
-  <path d="M4 17c1.2-1 2.5 0 3.8-0.6s2.5 0.6 3.8 0c1.3-0.6 2.5 0.4 3.8-0.2s2.5 0.6 3.8 0c1.3-0.6 2.5 0.4 3.8 0v2H4z" fill="#3dd68c"/>
-  <!-- Patty -->
-  <rect x="4.5" y="18.5" width="23" height="3.5" rx="1.8" fill="#e8973f"/>
-  <!-- Bun bottom -->
-  <rect x="5.5" y="23.5" width="21" height="3.5" rx="1.8" fill="#8b7ad8"/>
-  <!-- Bite (bg-colored circle on top of everything) -->
-  <circle cx="25.5" cy="6.5" r="5.5" fill="#08090a"/>
+  <defs>
+    <mask id="bite-mask">
+      <!-- White = visible, black = cut out -->
+      <rect width="32" height="32" fill="white"/>
+      <circle cx="25.5" cy="6.5" r="5.5" fill="black"/>
+    </mask>
+  </defs>
+  <g mask="url(#bite-mask)">
+    <!-- Bun top (dome) -->
+    <path d="M5 15.5h22c0-7.2-4.5-11.5-11-11.5S5 8.3 5 15.5z" fill="#8b7ad8"/>
+    <!-- Sesame seeds -->
+    <ellipse cx="10.5" cy="8.5" rx="1.4" ry="0.7" transform="rotate(-25 10.5 8.5)" fill="#b0a3e3" opacity="0.6"/>
+    <ellipse cx="16.5" cy="6.2" rx="1.4" ry="0.7" transform="rotate(15 16.5 6.2)" fill="#b0a3e3" opacity="0.6"/>
+    <!-- Lettuce (centered wavy green) -->
+    <path d="M4.5 16.2c2 1.2 3.5-0.4 5.5 0.5s3.5-0.8 5.5 0.2 3.5-0.6 5.5 0.1 3.5-0.5 5.5 0.3l0 1.7H4.5z" fill="#3dd68c"/>
+    <!-- Patty -->
+    <rect x="4.5" y="18.5" width="23" height="3.5" rx="1.8" fill="#e8973f"/>
+    <!-- Bun bottom -->
+    <rect x="5.5" y="23.5" width="21" height="3.5" rx="1.8" fill="#8b7ad8"/>
+  </g>
 </svg>
