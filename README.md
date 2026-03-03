@@ -1,8 +1,10 @@
-# token-dashboard
+# oh-my-claude
 
 Visualize your [Claude Code](https://docs.anthropic.com/en/docs/claude-code) token usage, estimate what you'd pay through the API, and see how your AI footprint stacks up against a plant-based diet.
 
 **Zero dependencies. Runs in your browser. All data stays local.**
+
+> **Not affiliated with Anthropic.** This is an independent, open-source project. It reads the local stats file that Claude Code already creates on your machine and does math on it — that's it. "Claude" is a trademark of Anthropic, PBC. Cost estimates are based on publicly listed API pricing and may not reflect what you actually pay under a subscription plan. Environmental figures are rough, directional estimates — not precise measurements. See [Methodology](#the-burger-index) for sources and caveats.
 
 <!-- TODO: Add a screenshot here once deployed -->
 

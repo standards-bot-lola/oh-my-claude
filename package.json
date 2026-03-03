@@ -1,7 +1,7 @@
 {
-  "name": "token-dashboard",
+  "name": "oh-my-claude",
   "version": "1.0.0",
-  "description": "Visualize Claude Code token usage, API cost equivalents, and environmental impact",
+  "description": "Visualize Claude Code token usage, API cost equivalents, and environmental impact. Not affiliated with Anthropic.",
   "scripts": {
     "start": "npx serve .",
     "dev": "npx serve . --cors -l 5555"
