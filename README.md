@@ -1,22 +1,26 @@
 # oh-my-claude
 
-Visualize your [Claude Code](https://docs.anthropic.com/en/docs/claude-code) token usage, estimate what you'd pay through the API, and see how your AI footprint stacks up against a plant-based diet.
+Visualize your [Claude Code](https://docs.anthropic.com/en/docs/claude-code) token usage, estimate what you'd pay through the API, and see how your AI footprint stacks up against your dietary choices.
 
 **Zero dependencies. Runs in your browser. All data stays local.**
 
-> **Not affiliated with Anthropic.** This is an independent, open-source project. It reads the local stats file that Claude Code already creates on your machine and does math on it — that's it. "Claude" is a trademark of Anthropic, PBC. Cost estimates are based on publicly listed API pricing and may not reflect what you actually pay under a subscription plan. Environmental figures are rough, directional estimates — not precise measurements. See [Methodology](#the-burger-index) for sources and caveats.
-
-<!-- TODO: Add a screenshot here once deployed -->
+> **Not affiliated with Anthropic.** This is an independent, open-source project built by [dizruptr](https://dizruptr.to). It reads the local stats file that Claude Code already creates on your machine and does math on it — that's it. "Claude" is a trademark of Anthropic, PBC. Cost estimates are based on publicly listed API pricing and may not reflect what you actually pay under a subscription plan. Environmental figures use 3-tier ranges (conservative/moderate/generous) from peer-reviewed sources — see [Methodology](#methodology) for details.
 
 ## Quick Start
 
-Open `index.html` directly in your browser, or serve it:
+1. In Claude Code, run `/stats` to refresh your usage data
+2. Copy the stats file somewhere your browser can access:
+   ```bash
+   # macOS / Linux
+   cp ~/.claude/stats-cache.json ~/Documents/
 
-```bash
-npx serve .
-```
+   # Windows
+   copy %USERPROFILE%\.claude\stats-cache.json %USERPROFILE%\Documents\
+   ```
+3. Open [oh-my-claude.com](https://oh-my-claude.com) (or `index.html` locally)
+4. Drop the file or click to browse
 
-Then load your `~/.claude/stats-cache.json` (drag & drop or file picker). That's it.
+The `~/.claude` folder is hidden — it won't appear in your browser's file picker, which is why you need to copy it first.
 
 ## Features
 
@@ -25,7 +29,9 @@ Then load your `~/.claude/stats-cache.json` (drag & drop or file picker). That's
 - **Daily charts** — Token output by model, messages + tool calls, session start hours
 - **Multi-machine support** — Load stats from multiple computers, see merged + per-machine views
 - **Persistent storage** — Machines cached in localStorage so you can revisit and update over time
-- **The Burger Index** — Your AI CO₂ translated into cheeseburgers, compared against what a plant-based diet saves
+- **Dietary profiles** — Omnivore, Pescatarian, Vegetarian, Vegan — full daily CO2 savings vs omnivore baseline
+- **The Burger Index** — AI CO2 translated into cheeseburgers as a fun, visceral comparison
+- **3-tier estimates** — Conservative, Moderate, and Generous ranges for every figure
 
 ## Multi-Machine Workflow
 
@@ -38,16 +44,7 @@ Claude Code creates `~/.claude/stats-cache.json` on each machine. If you use Cla
 5. Stats persist in your browser's localStorage — come back anytime
 6. Click the refresh icon on a machine pill to update it with a newer stats file
 
-To sync files between machines, you can copy `stats-cache.json` via USB, cloud drive, or `scp`.
-
-## Where's the Stats File?
-
-| OS | Path |
-|----|------|
-| macOS / Linux | `~/.claude/stats-cache.json` |
-| Windows | `C:\Users\<you>\.claude\stats-cache.json` |
-
-The file is created automatically by Claude Code and updated as you use it. It contains aggregate usage data — no conversation content.
+You can also drag-drop files directly onto the page at any time — even when the dashboard is already showing.
 
 ## Pricing
 
@@ -61,23 +58,38 @@ Costs are estimated using [Anthropic's published API pricing](https://docs.anthr
 
 Claude Code subscriptions (Max, Pro) include usage in the subscription cost — these estimates show what the equivalent API usage would cost, not what you actually paid.
 
-## The Burger Index
+## Dietary Profiles
 
-The dashboard estimates the CO₂ footprint of your AI usage and compares it against the environmental savings of a plant-based diet:
+The dashboard compares your AI CO2 footprint against the environmental savings of different diets. Daily CO2e by diet type:
 
-**AI side:**
-- Energy per token: ~1 kWh/MTok output, ~0.3 kWh/MTok input, ~0.02 kWh/MTok cache reads
-- CO₂ per kWh: 0.42 kg (US grid average, EPA eGRID 2024)
+| Diet | Conservative | Moderate | Generous |
+|------|-------------|----------|----------|
+| Omnivore (baseline) | 3.0 kg/day | 3.6 kg/day | 7.2 kg/day |
+| Pescatarian | 2.2 kg/day | 2.7 kg/day | 3.9 kg/day |
+| Vegetarian | 2.0 kg/day | 2.45 kg/day | 3.5 kg/day |
+| Vegan | 1.0 kg/day | 1.38 kg/day | 2.5 kg/day |
 
-**Diet side:**
-- 1 beef cheeseburger = ~4.5 kg CO₂e (full lifecycle: feed, methane, transport, cooking)
-- Average American consumption: ~2.4 beef burgers/week (USDA)
+**Savings = (omnivore baseline - your diet) x days.** A vegan saving ~2.2 kg/day over 90 days offsets ~200 kg CO2 — far more than the burger-only metric suggests.
 
-**The ratio** shows how many times over your plant-based diet offsets your AI inference footprint. If the ratio is >1x, your diet more than covers it.
+The burger equivalent is kept as a fun secondary comparison: "Your AI runs on 0.1-0.6 burgers of CO2."
 
-These are rough order-of-magnitude estimates. Token-to-energy figures vary 10x+ depending on hardware, batch size, and data center efficiency. The point is directional, not precise.
+## Methodology
 
-Sources: [TokenPowerBench (arxiv 2024)](https://arxiv.org/html/2512.03024v1), [Muxup (2026)](https://muxup.com/2026q1/per-query-energy-consumption-of-llms), [co2everything.com](https://www.co2everything.com/co2e-of/beef), [SixDegreesNews](https://www.sixdegreesnews.org/archives/10261/the-carbon-footprint-of-a-cheeseburger/)
+All figures are computed under 3 tiers:
+
+- **Conservative** — Low-end estimates, favorable assumptions
+- **Moderate** — Best available peer-reviewed midpoints
+- **Generous** — Upper-bound estimates, worst-case assumptions
+
+**Dietary CO2:** Scarborough et al. 2023 (EPIC-Oxford cohort, Nature Food) and Poore & Nemecek 2018 (Science meta-analysis, 38,700 farms).
+
+**Energy per token:** ~1 kWh/MTok output (moderate). Range: 0.4-2.0 depending on hardware and batch size. Sources: TokenPowerBench (arxiv 2024), Muxup (2026), John Snow Labs.
+
+**CO2 per kWh:** 0.42 kg moderate (US grid avg, EPA eGRID 2024). Range: 0.28-0.55.
+
+**Burger footprint:** 4.5 kg CO2e moderate (Poore & Nemecek 2018). Range: 2.5-6.5 kg.
+
+**Caveats:** Token-to-energy estimates vary 10x+ by hardware, batch size, and PUE. Dietary footprints assume typical Western grocery patterns. Anthropic's actual data center efficiency is not public. The range captures most of this uncertainty.
 
 ## Privacy
 
@@ -95,15 +107,15 @@ Single-page app with zero build step:
 - **Chart.js 4** via CDN for charts
 - **IBM Plex** (Sans + Mono) via Google Fonts
 - **Vanilla JS** with a `TD` namespace (no framework, no bundler)
-- **localStorage** for machine data persistence
+- **localStorage** for machine data and diet profile persistence
 
 6 JS modules loaded via `<script>` tags (works from `file://` — no server required):
 
 ```
-js/config.js   — Pricing tables, environmental constants
+js/config.js   — Pricing tables, environmental constants, dietary profiles
 js/utils.js    — Formatting, animation helpers
 js/storage.js  — Multi-machine localStorage CRUD
-js/engine.js   — Data merging, cost calculation, burger math
+js/engine.js   — Data merging, cost calculation, diet + burger math
 js/charts.js   — Chart.js rendering
 js/app.js      — DOM orchestration, file loading, machine management
 ```

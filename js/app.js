@@ -20,8 +20,9 @@
     if (TD.storage.count() > 0) {
       renderDashboard();
     } else {
-      // First visit — open the guide automatically
+      // First visit — open the guide, show landing layout
       document.getElementById('usageGuide').open = true;
+      setLandingMode(true);
     }
   });
 
@@ -150,6 +151,19 @@
     el._timer = setTimeout(function() { el.className = 'toast'; }, 2500);
   }
 
+  // ── Landing mode toggle ──
+  function setLandingMode(on) {
+    var container = document.querySelector('.container');
+    var landingFooter = document.getElementById('landingFooter');
+    if (on) {
+      container.classList.add('is-landing');
+      if (landingFooter) landingFooter.style.display = '';
+    } else {
+      container.classList.remove('is-landing');
+      if (landingFooter) landingFooter.style.display = 'none';
+    }
+  }
+
   // ── Dashboard render ──
   function renderDashboard() {
     const machines = TD.storage.getAll();
@@ -158,11 +172,13 @@
     if (count === 0) {
       document.getElementById('loader').style.display = 'flex';
       document.getElementById('dashboard').style.display = 'none';
+      setLandingMode(true);
       return;
     }
 
     document.getElementById('loader').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
+    setLandingMode(false);
 
     // Merge all machines
     const merged = TD.mergeStats(machines);

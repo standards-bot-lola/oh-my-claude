@@ -8,8 +8,10 @@
   },
   "keywords": ["claude", "claude-code", "token-usage", "dashboard", "analytics", "anthropic"],
   "license": "MIT",
+  "homepage": "https://oh-my-claude.com",
   "repository": {
     "type": "git",
-    "url": ""
-  }
+    "url": "https://github.com/dizruptr/oh-my-claude"
+  },
+  "author": "dizruptr (https://dizruptr.to)"
 }
