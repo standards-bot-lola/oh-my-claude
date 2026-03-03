@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Bun top (rounded) -->
-  <path d="M6 14h20c0-6.6-4.5-10-10-10S6 7.4 6 14z" fill="#8b7ad8"/>
+  <!-- Bun top (dome) -->
+  <path d="M5 15.5h22c0-7.2-4.5-11.5-11-11.5S5 8.3 5 15.5z" fill="#8b7ad8"/>
+  <!-- Sesame seeds on bun -->
+  <ellipse cx="10.5" cy="8.5" rx="1.4" ry="0.7" transform="rotate(-25 10.5 8.5)" fill="#b0a3e3" opacity="0.6"/>
+  <ellipse cx="16.5" cy="6.2" rx="1.4" ry="0.7" transform="rotate(15 16.5 6.2)" fill="#b0a3e3" opacity="0.6"/>
+  <!-- Lettuce (wavy green peeking out) -->
+  <path d="M4 17c1.2-1 2.5 0 3.8-0.6s2.5 0.6 3.8 0c1.3-0.6 2.5 0.4 3.8-0.2s2.5 0.6 3.8 0c1.3-0.6 2.5 0.4 3.8 0v2H4z" fill="#3dd68c"/>
   <!-- Patty -->
-  <rect x="5" y="15.5" width="22" height="4" rx="2" fill="#e8973f"/>
+  <rect x="4.5" y="18.5" width="23" height="3.5" rx="1.8" fill="#e8973f"/>
   <!-- Bun bottom -->
-  <rect x="6" y="21" width="20" height="4" rx="2" fill="#8b7ad8"/>
-  <!-- Bite taken out (top-right) -->
-  <circle cx="24" cy="8" r="5" fill="#08090a"/>
+  <rect x="5.5" y="23.5" width="21" height="3.5" rx="1.8" fill="#8b7ad8"/>
+  <!-- Bite (bg-colored circle on top of everything) -->
+  <circle cx="25.5" cy="6.5" r="5.5" fill="#08090a"/>
 </svg>
