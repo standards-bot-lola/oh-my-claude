@@ -1,0 +1,15 @@
+{
+  "name": "token-dashboard",
+  "version": "1.0.0",
+  "description": "Visualize Claude Code token usage, API cost equivalents, and environmental impact",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve . --cors -l 5555"
+  },
+  "keywords": ["claude", "claude-code", "token-usage", "dashboard", "analytics", "anthropic"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}
