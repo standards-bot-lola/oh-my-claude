@@ -136,8 +136,13 @@ TD.mergeStats = function(machineMap) {
 
 /**
  * Compute burger / environmental metrics for a single tier.
+ *
+ * AI CO₂ uses only tracked data (daySpan from stats).
+ * Diet savings uses dietDaySpan — firstSessionDate → today —
+ * because your dietary choice is continuous, not gated by when
+ * the stats file was last computed.
  */
-TD.computeBurgerTier = function(totals, daySpan, tier) {
+TD.computeBurgerTier = function(totals, daySpan, dietDaySpan, tier) {
   var E = TD.getEnv(tier);
   var outputMTok     = totals.output / 1e6;
   var inputMTok      = totals.input / 1e6;
@@ -150,25 +155,38 @@ TD.computeBurgerTier = function(totals, daySpan, tier) {
 
   var aiCO2       = energyKWh * E.KG_CO2_PER_KWH;
   var aiBurgers   = aiCO2 / E.KG_CO2_PER_BURGER;
-  var weeksSpan   = daySpan / 7;
+  var weeksSpan   = dietDaySpan / 7;
   var dietBurgers = Math.round(weeksSpan * E.AVG_BURGERS_PER_WEEK);
   var dietCO2     = dietBurgers * E.KG_CO2_PER_BURGER;
   var netCO2      = dietCO2 - aiCO2;
   var ratio       = dietCO2 > 0 ? dietCO2 / aiCO2 : 0;
   var pctUsed     = dietCO2 > 0 ? (aiCO2 / dietCO2) * 100 : 0;
 
-  return { tier: tier, label: E.label, energyKWh: energyKWh, aiCO2: aiCO2, aiBurgers: aiBurgers, dietBurgers: dietBurgers, dietCO2: dietCO2, netCO2: netCO2, ratio: ratio, pctUsed: pctUsed };
+  return { tier: tier, label: E.label, energyKWh: energyKWh, aiCO2: aiCO2, aiBurgers: aiBurgers, dietBurgers: dietBurgers, dietDaySpan: dietDaySpan, dietCO2: dietCO2, netCO2: netCO2, ratio: ratio, pctUsed: pctUsed };
 };
 
 /**
  * Compute all 3 tiers. Returns { conservative, moderate, generous }.
+ *
+ * dietDaySpan = firstSessionDate → today (continuous diet window).
+ * daySpan = firstSessionDate → lastComputedDate (AI data window).
  */
-TD.computeBurger = function(totals, daySpan) {
+TD.computeBurger = function(totals, daySpan, dietDaySpan) {
   return {
-    conservative: TD.computeBurgerTier(totals, daySpan, 'conservative'),
-    moderate:     TD.computeBurgerTier(totals, daySpan, 'moderate'),
-    generous:     TD.computeBurgerTier(totals, daySpan, 'generous'),
+    conservative: TD.computeBurgerTier(totals, daySpan, dietDaySpan, 'conservative'),
+    moderate:     TD.computeBurgerTier(totals, daySpan, dietDaySpan, 'moderate'),
+    generous:     TD.computeBurgerTier(totals, daySpan, dietDaySpan, 'generous'),
   };
+};
+
+/**
+ * Compute the diet day span — firstSessionDate → today.
+ * This is always >= the AI data daySpan since your diet doesn't
+ * stop when the stats file stops updating.
+ */
+TD.computeDietDaySpan = function(data) {
+  var first = data.firstSessionDate ? new Date(data.firstSessionDate) : new Date();
+  return Math.max(1, Math.round((new Date() - first) / 86400000));
 };
 
 /**

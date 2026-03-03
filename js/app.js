@@ -126,6 +126,7 @@
     const merged = TD.mergeStats(machines);
     const { models, totals } = TD.computeCosts(merged.modelUsage);
     const daySpan = TD.computeDaySpan(merged);
+    const dietDaySpan = TD.computeDietDaySpan(merged);
     const firstDate = merged.firstSessionDate ? new Date(merged.firstSessionDate) : new Date();
     const lastDate = merged.lastComputedDate ? new Date(merged.lastComputedDate + 'T00:00:00') : new Date();
 
@@ -152,7 +153,7 @@
     renderMachineBreakdown(machines);
 
     // Burger
-    renderBurger(totals, daySpan);
+    renderBurger(totals, daySpan, dietDaySpan);
 
     // Animate counters after a tick
     setTimeout(function() { animateAllCounters(totals, merged, daySpan); }, 120);
@@ -276,8 +277,8 @@
   var burgerTiers = null;
   var currentTier = 'moderate';
 
-  function renderBurger(totals, daySpan) {
-    burgerTiers = TD.computeBurger(totals, daySpan);
+  function renderBurger(totals, daySpan, dietDaySpan) {
+    burgerTiers = TD.computeBurger(totals, daySpan, dietDaySpan);
     currentTier = 'moderate';
     renderBurgerTier();
   }
@@ -302,8 +303,8 @@
         '<div class="burger-tagline">' + (positive ? 'Plant-Powered Net Positive' : 'Offset Exceeded') + '</div>' +
         '<div class="burger-headline">Your AI runs on ' + burgerRange + ' burgers of CO&#8322;</div>' +
         '<div class="burger-body">' + (positive
-          ? 'Over ' + b.tier + ' estimates, Claude inference generated ~<strong>' + b.aiCO2.toFixed(1) + ' kg CO&#8322;</strong> (range: ' + aiRange + '). By going plant-based, you skipped ~' + b.dietBurgers + ' burgers worth <strong>' + b.dietCO2.toFixed(1) + ' kg CO&#8322;</strong>. Your diet covers your AI footprint <strong>' + b.ratio.toFixed(1) + 'x over</strong>.'
-          : 'Over ' + b.tier + ' estimates, Claude inference generated ~<strong>' + b.aiCO2.toFixed(1) + ' kg CO&#8322;</strong> (range: ' + aiRange + '), exceeding the <strong>' + b.dietCO2.toFixed(1) + ' kg CO&#8322;</strong> saved by skipping ~' + b.dietBurgers + ' burgers.'
+          ? 'Using ' + b.tier + ' estimates, Claude inference generated ~<strong>' + b.aiCO2.toFixed(1) + ' kg CO&#8322;</strong> (range: ' + aiRange + '). Over ' + b.dietDaySpan + ' days plant-based, you skipped ~' + b.dietBurgers + ' burgers worth <strong>' + b.dietCO2.toFixed(1) + ' kg CO&#8322;</strong>. Your diet covers your AI footprint <strong>' + b.ratio.toFixed(1) + 'x over</strong>.'
+          : 'Using ' + b.tier + ' estimates, Claude inference generated ~<strong>' + b.aiCO2.toFixed(1) + ' kg CO&#8322;</strong> (range: ' + aiRange + '), exceeding the <strong>' + b.dietCO2.toFixed(1) + ' kg CO&#8322;</strong> saved by skipping ~' + b.dietBurgers + ' burgers over ' + b.dietDaySpan + ' days.'
         ) + '</div>' +
       '</div>' +
 
