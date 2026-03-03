@@ -2,7 +2,6 @@
  * Chart.js rendering functions.
  * Each returns the Chart instance for cleanup.
  */
-const TD = window.TD || {};
 
 TD.charts = [];
 
@@ -160,5 +159,3 @@ TD.renderHourChart = function(canvasId, hourCounts) {
   });
   TD.charts.push(chart);
 };
-
-window.TD = TD;

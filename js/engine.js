@@ -1,7 +1,6 @@
 /**
  * Data processing: cost calculation, multi-file merging, burger math.
  */
-const TD = window.TD || {};
 
 /**
  * Compute per-model costs from a modelUsage object.
@@ -169,5 +168,3 @@ TD.computeDaySpan = function(data) {
   const last  = data.lastComputedDate ? new Date(data.lastComputedDate + 'T00:00:00') : new Date();
   return Math.max(1, Math.round((last - first) / 86400000));
 };
-
-window.TD = TD;

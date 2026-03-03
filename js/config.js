@@ -1,7 +1,8 @@
 /**
  * Pricing tables, environmental constants, and model metadata.
  */
-const TD = window.TD || {};
+window.TD = window.TD || {};
+var TD = window.TD;
 
 TD.PRICING = {
   'claude-opus-4-5-20251101':   { input: 5.00, output: 25.00, cacheRead: 0.50, cacheWrite: 6.25,  label: 'Opus 4.5',   color: '#7c5cbf' },
@@ -34,5 +35,3 @@ TD.getModelColor = function(id) {
 TD.getModelPricing = function(id) {
   return TD.PRICING[id] || { ...TD.DEFAULT_PRICING, label: TD.getModelLabel(id) };
 };
-
-window.TD = TD;

@@ -7,7 +7,7 @@
  *   "Laptop":   { data: { ...stats-cache }, loadedAt: "ISO string" },
  * }
  */
-const TD = window.TD || {};
+/* (TD initialized in config.js) */
 
 TD.STORAGE_KEY = 'td-machines';
 
@@ -63,5 +63,3 @@ TD.storage = {
     localStorage.removeItem(TD.STORAGE_KEY);
   },
 };
-
-window.TD = TD;

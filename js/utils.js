@@ -1,7 +1,6 @@
 /**
  * Formatting helpers and animation utilities.
  */
-const TD = window.TD || {};
 
 TD.fmt = function(n) {
   if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
@@ -63,5 +62,3 @@ TD.timeAgo = function(dateStr) {
   const days = Math.floor(hrs / 24);
   return days + 'd ago';
 };
-
-window.TD = TD;
