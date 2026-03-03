@@ -273,79 +273,115 @@
   }
 
   // ── Burger section ──
-  function renderBurger(totals, daySpan) {
-    const b = TD.computeBurger(totals, daySpan);
-    const positive = b.netCO2 > 0;
+  var burgerTiers = null;
+  var currentTier = 'moderate';
 
-    const zone = document.getElementById('burgerZone');
+  function renderBurger(totals, daySpan) {
+    burgerTiers = TD.computeBurger(totals, daySpan);
+    currentTier = 'moderate';
+    renderBurgerTier();
+  }
+
+  function renderBurgerTier() {
+    var b = burgerTiers[currentTier];
+    var lo = burgerTiers.conservative;
+    var hi = burgerTiers.generous;
+    var positive = b.netCO2 > 0;
+
+    var zone = document.getElementById('burgerZone');
     zone.className = 'burger-zone' + (positive ? '' : ' net-negative');
 
-    // Budget bar: full width = diet savings, filled portion = AI usage
-    const barPct = Math.min(b.pctUsed, 100);
+    var barPct = Math.min(b.pctUsed, 100);
 
-    zone.innerHTML = `
-      <div class="burger-header">
-        <div class="burger-tagline">${positive ? 'Plant-Powered Net Positive' : 'Offset Exceeded'}</div>
-        <div class="burger-headline">Your AI runs on ${b.aiBurgers.toFixed(1)} burgers of CO&#8322;</div>
-        <div class="burger-body">${positive
-          ? `Over ${daySpan} days, Claude inference generated ~<strong>${b.aiCO2.toFixed(1)} kg CO&#8322;</strong>. By going plant-based, you skipped ~${b.dietBurgers} burgers worth <strong>${b.dietCO2.toFixed(1)} kg CO&#8322;</strong>. Your diet covers your AI footprint <strong>${b.ratio.toFixed(1)}x over</strong>.`
-          : `Over ${daySpan} days, Claude inference generated ~<strong>${b.aiCO2.toFixed(1)} kg CO&#8322;</strong>, exceeding the <strong>${b.dietCO2.toFixed(1)} kg CO&#8322;</strong> saved by skipping ~${b.dietBurgers} burgers.`
-        }</div>
-      </div>
+    // Range strings for display
+    var aiRange = lo.aiCO2.toFixed(1) + '–' + hi.aiCO2.toFixed(1);
+    var burgerRange = lo.aiBurgers.toFixed(1) + '–' + hi.aiBurgers.toFixed(1);
 
-      <div class="budget-bar">
-        <div class="budget-labels">
-          <span>AI used <strong>${b.pctUsed.toFixed(0)}%</strong> of diet savings</span>
-          <span class="budget-label-right">${b.dietCO2.toFixed(1)} kg saved</span>
-        </div>
-        <div class="budget-track">
-          <div class="budget-fill" style="width: 0%" data-target="${barPct}"></div>
-        </div>
-        <div class="budget-legend">
-          <span class="budget-legend-item"><span class="legend-dot" style="background:var(--orange)"></span>${b.aiCO2.toFixed(1)} kg AI</span>
-          <span class="budget-legend-item"><span class="legend-dot" style="background:var(--green)"></span>${(b.dietCO2 - b.aiCO2).toFixed(1)} kg net saved</span>
-        </div>
-      </div>
+    zone.innerHTML =
+      '<div class="burger-header">' +
+        '<div class="burger-tagline">' + (positive ? 'Plant-Powered Net Positive' : 'Offset Exceeded') + '</div>' +
+        '<div class="burger-headline">Your AI runs on ' + burgerRange + ' burgers of CO&#8322;</div>' +
+        '<div class="burger-body">' + (positive
+          ? 'Over ' + b.tier + ' estimates, Claude inference generated ~<strong>' + b.aiCO2.toFixed(1) + ' kg CO&#8322;</strong> (range: ' + aiRange + '). By going plant-based, you skipped ~' + b.dietBurgers + ' burgers worth <strong>' + b.dietCO2.toFixed(1) + ' kg CO&#8322;</strong>. Your diet covers your AI footprint <strong>' + b.ratio.toFixed(1) + 'x over</strong>.'
+          : 'Over ' + b.tier + ' estimates, Claude inference generated ~<strong>' + b.aiCO2.toFixed(1) + ' kg CO&#8322;</strong> (range: ' + aiRange + '), exceeding the <strong>' + b.dietCO2.toFixed(1) + ' kg CO&#8322;</strong> saved by skipping ~' + b.dietBurgers + ' burgers.'
+        ) + '</div>' +
+      '</div>' +
 
-      <div class="burger-stat-row">
-        <div class="burger-stat">
-          <div class="num" style="color:var(--orange)" id="ctrAiBurgers">0</div>
-          <div class="lbl">AI Burgers</div>
-        </div>
-        <div class="burger-stat">
-          <div class="num" style="color:var(--green)" id="ctrDietBurgers">0</div>
-          <div class="lbl">Burgers Skipped</div>
-        </div>
-        <div class="burger-stat">
-          <div class="num" style="color:${positive ? 'var(--green)' : 'var(--red)'}" id="ctrRatio">0</div>
-          <div class="lbl">Diet : AI Ratio</div>
-        </div>
-        <div class="burger-stat">
-          <div class="num" style="color:var(--blue)" id="ctrKwh">0</div>
-          <div class="lbl">Est. kWh</div>
-        </div>
-      </div>
+      // Tier toggle
+      '<div class="tier-toggle">' +
+        '<button class="tier-btn' + (currentTier === 'conservative' ? ' active' : '') + '" onclick="TD.app.setTier(\'conservative\')">Conservative</button>' +
+        '<button class="tier-btn' + (currentTier === 'moderate' ? ' active' : '') + '" onclick="TD.app.setTier(\'moderate\')">Moderate</button>' +
+        '<button class="tier-btn' + (currentTier === 'generous' ? ' active' : '') + '" onclick="TD.app.setTier(\'generous\')">Generous</button>' +
+      '</div>' +
 
-      <details class="methodology">
-        <summary>Methodology &amp; Sources</summary>
-        <p><strong>API Pricing:</strong> Anthropic official pricing (Mar 2026). Opus 4.5/4.6: $5/$25/$0.50/$6.25 per MTok (in/out/cache-read/cache-write). Sonnet 4.5: $3/$15/$0.30/$3.75. Haiku: $0.80/$4/$0.08/$1.</p>
-        <p><strong>Energy per token:</strong> ~1 kWh/MTok output (active inference), ~0.3 kWh/MTok input/cache-write, ~0.02 kWh/MTok cache reads. Sources: TokenPowerBench (arxiv 2024), Muxup (2026), John Snow Labs.</p>
-        <p><strong>CO&#8322; per kWh:</strong> 0.42 kg &mdash; US grid average (EPA eGRID 2024).</p>
-        <p><strong>Burger footprint:</strong> ~4.5 kg CO&#8322;e per beef cheeseburger, full lifecycle (feed, methane, transport, cooking). Sources: co2everything.com, SixDegreesNews.</p>
-        <p><strong>Burgers skipped:</strong> US average ~2.4 beef burgers/week (USDA). Assumes full avoidance during tracked period.</p>
-        <p><strong>The ratio:</strong> Total CO&#8322; saved by plant-based diet &divide; total CO&#8322; from AI inference. &gt;1x means your diet more than offsets your AI usage.</p>
-        <p><strong>Caveats:</strong> Token-to-energy estimates vary 10x+ by hardware, batch size, and data center PUE. Cache reads are dramatically cheaper than output inference. These are rough order-of-magnitude figures. Anthropic's actual efficiency may differ significantly.</p>
-      </details>`;
+      // Budget bar
+      '<div class="budget-bar">' +
+        '<div class="budget-labels">' +
+          '<span>AI used <strong>' + b.pctUsed.toFixed(0) + '%</strong> of diet savings</span>' +
+          '<span class="budget-label-right">' + b.dietCO2.toFixed(1) + ' kg saved</span>' +
+        '</div>' +
+        '<div class="budget-track">' +
+          '<div class="budget-fill" style="width:0%" data-target="' + barPct + '"></div>' +
+        '</div>' +
+        '<div class="budget-legend">' +
+          '<span class="budget-legend-item"><span class="legend-dot" style="background:var(--orange)"></span>' + b.aiCO2.toFixed(1) + ' kg AI</span>' +
+          '<span class="budget-legend-item"><span class="legend-dot" style="background:var(--green)"></span>' + Math.max(0, b.dietCO2 - b.aiCO2).toFixed(1) + ' kg net saved</span>' +
+        '</div>' +
+      '</div>' +
 
-    // Animate budget bar + counters
+      // Range table
+      '<div class="range-table-wrap">' +
+        '<table class="range-table">' +
+          '<tr><th></th><th class="right">Conservative</th><th class="right">Moderate</th><th class="right">Generous</th></tr>' +
+          '<tr><td class="label-cell">AI CO&#8322;</td><td class="right">' + lo.aiCO2.toFixed(1) + ' kg</td><td class="right">' + burgerTiers.moderate.aiCO2.toFixed(1) + ' kg</td><td class="right">' + hi.aiCO2.toFixed(1) + ' kg</td></tr>' +
+          '<tr><td class="label-cell">AI Burgers</td><td class="right">' + lo.aiBurgers.toFixed(1) + '</td><td class="right">' + burgerTiers.moderate.aiBurgers.toFixed(1) + '</td><td class="right">' + hi.aiBurgers.toFixed(1) + '</td></tr>' +
+          '<tr><td class="label-cell">Diet Savings</td><td class="right">' + lo.dietCO2.toFixed(1) + ' kg</td><td class="right">' + burgerTiers.moderate.dietCO2.toFixed(1) + ' kg</td><td class="right">' + hi.dietCO2.toFixed(1) + ' kg</td></tr>' +
+          '<tr><td class="label-cell">Diet : AI</td><td class="right">' + lo.ratio.toFixed(1) + 'x</td><td class="right">' + burgerTiers.moderate.ratio.toFixed(1) + 'x</td><td class="right">' + hi.ratio.toFixed(1) + 'x</td></tr>' +
+          '<tr><td class="label-cell">Est. kWh</td><td class="right">' + lo.energyKWh.toFixed(1) + '</td><td class="right">' + burgerTiers.moderate.energyKWh.toFixed(1) + '</td><td class="right">' + hi.energyKWh.toFixed(1) + '</td></tr>' +
+        '</table>' +
+      '</div>' +
+
+      // Stat row (selected tier)
+      '<div class="burger-stat-row">' +
+        '<div class="burger-stat">' +
+          '<div class="num" style="color:var(--orange)" id="ctrAiBurgers">0</div>' +
+          '<div class="lbl">AI Burgers</div>' +
+        '</div>' +
+        '<div class="burger-stat">' +
+          '<div class="num" style="color:var(--green)" id="ctrDietBurgers">0</div>' +
+          '<div class="lbl">Burgers Skipped</div>' +
+        '</div>' +
+        '<div class="burger-stat">' +
+          '<div class="num" style="color:' + (positive ? 'var(--green)' : 'var(--red)') + '" id="ctrRatio">0</div>' +
+          '<div class="lbl">Diet : AI Ratio</div>' +
+        '</div>' +
+        '<div class="burger-stat">' +
+          '<div class="num" style="color:var(--blue)" id="ctrKwh">0</div>' +
+          '<div class="lbl">Est. kWh</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<details class="methodology">' +
+        '<summary>Methodology &amp; Sources</summary>' +
+        '<p><strong>3-tier estimates:</strong> Each figure is computed under Conservative, Moderate, and Generous assumptions. The range reflects genuine uncertainty in these measurements — not sloppiness.</p>' +
+        '<p><strong>API Pricing:</strong> Anthropic official pricing (Mar 2026). Opus: $5/$25/$0.50/$6.25 per MTok. Sonnet: $3/$15/$0.30/$3.75. Haiku: $0.80/$4/$0.08/$1.</p>' +
+        '<p><strong>Energy per token (moderate):</strong> ~1 kWh/MTok output, ~0.3 input, ~0.02 cache reads. Conservative: 0.4/0.1/0.005 (optimized H100 cluster). Generous: 2.0/0.6/0.05 (large context, low batch). Sources: TokenPowerBench (arxiv 2024), Muxup (2026), John Snow Labs.</p>' +
+        '<p><strong>CO&#8322; per kWh:</strong> Conservative: 0.28 kg (renewable-heavy data center). Moderate: 0.42 kg (US grid avg, EPA eGRID 2024). Generous: 0.55 kg (higher-carbon grid regions).</p>' +
+        '<p><strong>Burger footprint:</strong> Conservative: 2.5 kg (feedlot, GWP100, no land-use change — NCBA). Moderate: 4.5 kg (full lifecycle US beef — Poore &amp; Nemecek 2018, Nature Food 2024). Generous: 6.5 kg (full LCA + LUC + GWP20 methane — Oxford LEAP, Carlsson-Kanyama upper end).</p>' +
+        '<p><strong>Burgers skipped per week:</strong> Conservative: 0.65 (NHANES dietary recall — PMC11194417). Moderate: 1.0 (USDA ERS per-capita beef, ground-beef-to-burger conversion). Generous: 3.0 (all-burger types, industry aggregate — NRA).</p>' +
+        '<p><strong>Key correction:</strong> The commonly cited "2.4 burgers/week" conflates all burger types and uses industry marketing data. The peer-reviewed moderate estimate for beef-specifically is ~1.0/week (USDA ERS loss-adjusted data).</p>' +
+        '<p><strong>Caveats:</strong> Token-to-energy estimates vary 10x+ by hardware, batch size, and PUE. The range shown here captures most of that uncertainty. Anthropic\'s actual data center efficiency is not public.</p>' +
+      '</details>';
+
+    // Animate
     setTimeout(function() {
-      const fill = zone.querySelector('.budget-fill');
+      var fill = zone.querySelector('.budget-fill');
       if (fill) fill.style.width = fill.dataset.target + '%';
       TD.animateCounter(document.getElementById('ctrAiBurgers'), parseFloat(b.aiBurgers.toFixed(1)));
       TD.animateCounter(document.getElementById('ctrDietBurgers'), b.dietBurgers);
       TD.animateCounter(document.getElementById('ctrRatio'), parseFloat(b.ratio.toFixed(1)), '', 'x');
       TD.animateCounter(document.getElementById('ctrKwh'), parseFloat(b.energyKWh.toFixed(1)));
-    }, 400);
+    }, 200);
   }
 
   // ── Helpers ──
@@ -372,6 +408,10 @@
     pickFile: function() {
       updateTarget = null;
       document.getElementById('fileInput').click();
+    },
+    setTier: function(tier) {
+      currentTier = tier;
+      renderBurgerTier();
     },
   };
 

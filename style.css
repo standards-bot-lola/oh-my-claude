@@ -577,6 +577,56 @@ tr.total-row td {
 
 .burger-body strong { color: var(--text); font-weight: 500; }
 
+/* Tier toggle */
+.tier-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin: 20px auto 24px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  padding: 2px;
+  width: fit-content;
+  position: relative;
+  z-index: 1;
+}
+
+.tier-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s var(--ease);
+}
+
+.tier-btn:hover { color: var(--text-2); }
+
+.tier-btn.active {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+/* Range comparison table */
+.range-table-wrap {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto 24px;
+  max-width: 480px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.range-table { font-size: 11px; }
+.range-table th { font-size: 9px; padding: 8px 12px; }
+.range-table td { padding: 6px 12px; font-size: 11px; }
+
 /* Budget bar */
 .budget-bar {
   position: relative;

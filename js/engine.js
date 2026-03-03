@@ -135,29 +135,40 @@ TD.mergeStats = function(machineMap) {
 };
 
 /**
- * Compute burger / environmental metrics.
+ * Compute burger / environmental metrics for a single tier.
+ */
+TD.computeBurgerTier = function(totals, daySpan, tier) {
+  var E = TD.getEnv(tier);
+  var outputMTok     = totals.output / 1e6;
+  var inputMTok      = totals.input / 1e6;
+  var cacheWriteMTok = totals.cacheWrite / 1e6;
+  var cacheReadMTok  = totals.cacheRead / 1e6;
+
+  var energyKWh = outputMTok * E.KWH_PER_MTOK_OUTPUT
+                + (inputMTok + cacheWriteMTok) * E.KWH_PER_MTOK_INPUT
+                + cacheReadMTok * E.KWH_PER_MTOK_CACHE_READ;
+
+  var aiCO2       = energyKWh * E.KG_CO2_PER_KWH;
+  var aiBurgers   = aiCO2 / E.KG_CO2_PER_BURGER;
+  var weeksSpan   = daySpan / 7;
+  var dietBurgers = Math.round(weeksSpan * E.AVG_BURGERS_PER_WEEK);
+  var dietCO2     = dietBurgers * E.KG_CO2_PER_BURGER;
+  var netCO2      = dietCO2 - aiCO2;
+  var ratio       = dietCO2 > 0 ? dietCO2 / aiCO2 : 0;
+  var pctUsed     = dietCO2 > 0 ? (aiCO2 / dietCO2) * 100 : 0;
+
+  return { tier: tier, label: E.label, energyKWh: energyKWh, aiCO2: aiCO2, aiBurgers: aiBurgers, dietBurgers: dietBurgers, dietCO2: dietCO2, netCO2: netCO2, ratio: ratio, pctUsed: pctUsed };
+};
+
+/**
+ * Compute all 3 tiers. Returns { conservative, moderate, generous }.
  */
 TD.computeBurger = function(totals, daySpan) {
-  const E = TD.ENV;
-  const outputMTok    = totals.output / 1e6;
-  const inputMTok     = totals.input / 1e6;
-  const cacheWriteMTok = totals.cacheWrite / 1e6;
-  const cacheReadMTok = totals.cacheRead / 1e6;
-
-  const energyKWh = outputMTok * E.KWH_PER_MTOK_OUTPUT
-                   + (inputMTok + cacheWriteMTok) * E.KWH_PER_MTOK_INPUT
-                   + cacheReadMTok * E.KWH_PER_MTOK_CACHE_READ;
-
-  const aiCO2       = energyKWh * E.KG_CO2_PER_KWH;
-  const aiBurgers   = aiCO2 / E.KG_CO2_PER_BURGER;
-  const weeksSpan   = daySpan / 7;
-  const dietBurgers = Math.round(weeksSpan * E.AVG_BURGERS_PER_WEEK);
-  const dietCO2     = dietBurgers * E.KG_CO2_PER_BURGER;
-  const netCO2      = dietCO2 - aiCO2;
-  const ratio       = dietCO2 > 0 ? dietCO2 / aiCO2 : 0;
-  const pctUsed     = dietCO2 > 0 ? (aiCO2 / dietCO2) * 100 : 0;
-
-  return { energyKWh, aiCO2, aiBurgers, dietBurgers, dietCO2, netCO2, ratio, pctUsed };
+  return {
+    conservative: TD.computeBurgerTier(totals, daySpan, 'conservative'),
+    moderate:     TD.computeBurgerTier(totals, daySpan, 'moderate'),
+    generous:     TD.computeBurgerTier(totals, daySpan, 'generous'),
+  };
 };
 
 /**
