@@ -173,6 +173,171 @@ header {
   z-index: 1;
 }
 
+/* ── Usage guide ── */
+.usage-guide {
+  margin-bottom: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.usage-guide summary {
+  cursor: pointer;
+  font-weight: 500;
+  font-family: var(--mono);
+  color: var(--text-2);
+  font-size: 12px;
+  padding: 12px 16px;
+  letter-spacing: 0.02em;
+  transition: color 0.15s;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.usage-guide summary::-webkit-details-marker { display: none; }
+.usage-guide summary::before {
+  content: '▸';
+  font-size: 10px;
+  color: var(--text-4);
+  transition: transform 0.15s var(--ease);
+}
+
+.usage-guide[open] summary::before { transform: rotate(90deg); }
+.usage-guide summary:hover { color: var(--text); }
+
+.usage-steps {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.usage-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-top: 1px;
+}
+
+.step-body strong {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.step-body p {
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+.step-body code {
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  border: 1px solid var(--border);
+}
+
+.step-body em {
+  font-style: normal;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.usage-commands {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.usage-cmd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cmd-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.usage-cmd code {
+  font-size: 11px;
+  padding: 4px 10px;
+  white-space: nowrap;
+  user-select: all;
+}
+
+/* ── Global drop overlay ── */
+.drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(8, 9, 10, 0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.drop-overlay.visible {
+  display: flex;
+  pointer-events: auto;
+}
+
+.drop-overlay-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 48px 64px;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius-lg);
+  background: rgba(139, 122, 216, 0.04);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 500;
+  animation: fadeUp 0.2s var(--ease);
+}
+
+.drop-overlay-inner svg {
+  opacity: 0.6;
+}
+
 /* ── Machine bar ── */
 .machine-bar {
   display: flex;

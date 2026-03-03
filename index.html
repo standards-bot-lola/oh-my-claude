@@ -21,6 +21,44 @@
       </div>
     </header>
 
+    <!-- Usage guide (always visible) -->
+    <details class="usage-guide" id="usageGuide">
+      <summary>How to load your data</summary>
+      <div class="usage-steps">
+        <div class="usage-step">
+          <span class="step-num">1</span>
+          <div class="step-body">
+            <strong>Refresh your stats</strong>
+            <p>In Claude Code, run <code>/stats</code> to update the usage file.</p>
+          </div>
+        </div>
+        <div class="usage-step">
+          <span class="step-num">2</span>
+          <div class="step-body">
+            <strong>Copy the file somewhere accessible</strong>
+            <p>The stats file lives at <code>~/.claude/stats-cache.json</code> &mdash; this folder is hidden and won&rsquo;t appear in your browser&rsquo;s file picker. Copy it to a folder you can browse to:</p>
+            <div class="usage-commands">
+              <div class="usage-cmd">
+                <span class="cmd-label">macOS / Linux</span>
+                <code>cp ~/.claude/stats-cache.json ~/Documents/</code>
+              </div>
+              <div class="usage-cmd">
+                <span class="cmd-label">Windows</span>
+                <code>copy %USERPROFILE%\.claude\stats-cache.json %USERPROFILE%\Documents\</code>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="usage-step">
+          <span class="step-num">3</span>
+          <div class="step-body">
+            <strong>Drop or browse</strong>
+            <p>Drag the file onto this page, or click the drop zone / <em>+ Add Machine</em> button to open the file picker. You can load stats from multiple computers.</p>
+          </div>
+        </div>
+      </div>
+    </details>
+
     <!-- Machine bar (rendered by JS when data exists) -->
     <div id="machineBar" class="machine-bar"></div>
 
@@ -41,8 +79,10 @@
           or click to browse
         </span>
       </div>
-      <input type="file" id="fileInput" accept=".json" hidden>
     </div>
+
+    <!-- File input (outside loader so it's always accessible) -->
+    <input type="file" id="fileInput" accept=".json" hidden>
 
     <!-- Dashboard (shown when data loaded) -->
     <div id="dashboard">
@@ -120,6 +160,17 @@
       <button class="btn-confirm" id="nameConfirm">Add</button>
     </div>
   </dialog>
+
+  <!-- Global drop overlay (shown when dragging files over the page) -->
+  <div class="drop-overlay" id="dropOverlay">
+    <div class="drop-overlay-inner">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 3v14M5 10l7-7 7 7"/>
+        <path d="M20 21H4"/>
+      </svg>
+      <span>Drop stats-cache.json to add a machine</span>
+    </div>
+  </div>
 
   <!-- Toast -->
   <div class="toast" id="toast"></div>

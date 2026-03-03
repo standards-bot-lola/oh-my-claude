@@ -14,10 +14,14 @@
     Chart.defaults.color = '#55575e';
 
     setupFileHandlers();
+    setupGlobalDrop();
 
-    // If we have stored machines, render immediately
+    // If we have stored machines, render immediately; collapse guide
     if (TD.storage.count() > 0) {
       renderDashboard();
+    } else {
+      // First visit — open the guide automatically
+      document.getElementById('usageGuide').open = true;
     }
   });
 
@@ -45,6 +49,44 @@
     document.getElementById('machineName').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') confirmName();
       if (e.key === 'Escape') cancelName();
+    });
+  }
+
+  // ── Global drag-drop (works even when dashboard is showing) ──
+  function setupGlobalDrop() {
+    var overlay = document.getElementById('dropOverlay');
+    var dragCounter = 0;
+
+    document.addEventListener('dragenter', function(e) {
+      e.preventDefault();
+      dragCounter++;
+      // Only show overlay when dashboard is visible (loader has its own drop zone)
+      if (document.getElementById('dashboard').style.display === 'block') {
+        overlay.classList.add('visible');
+      }
+    });
+
+    document.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      dragCounter--;
+      if (dragCounter <= 0) {
+        dragCounter = 0;
+        overlay.classList.remove('visible');
+      }
+    });
+
+    document.addEventListener('dragover', function(e) {
+      e.preventDefault();
+    });
+
+    document.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dragCounter = 0;
+      overlay.classList.remove('visible');
+      // Only intercept if dashboard is showing and file came from outside the original drop zone
+      if (document.getElementById('dashboard').style.display === 'block' && e.dataTransfer.files[0]) {
+        handleFile(e.dataTransfer.files[0]);
+      }
     });
   }
 
